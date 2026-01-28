@@ -41,5 +41,49 @@ A small Pastebin-like app: create text pastes, get a shareable link, optional TT
 
 ## Deploy
 
-- **Vercel**: Connect the repo; add Upstash Redis (or Redis integration) and set `KV_REST_API_URL`, `KV_REST_API_TOKEN`. `VERCEL_URL` is set automatically for paste links. No custom config required; Express is auto-detected from `server.js`.
-- **Railway / Render**: Run `npm start`; set the same env vars and `APP_URL` to your public URL.
+### Deploy to Vercel
+
+1. **Push your code to GitHub/GitLab/Bitbucket**
+   ```bash
+   git add .
+   git commit -m "Prepare for Vercel deployment"
+   git push
+   ```
+
+2. **Connect to Vercel**
+   - Go to [vercel.com](https://vercel.com) and sign in
+   - Click "Add New Project"
+   - Import your repository
+   - Vercel will auto-detect it's a Node.js project
+
+3. **Set up Upstash Redis**
+   
+   **Option A: Use Vercel's Redis Integration (Recommended)**
+   - In your Vercel project dashboard, go to **Storage** → **Create Database** → **Redis**
+   - This automatically sets `KV_REST_API_URL` and `KV_REST_API_TOKEN` environment variables
+   
+   **Option B: Use External Upstash Redis**
+   - Create a database at [console.upstash.com](https://console.upstash.com)
+   - Go to your database → **Connect** → **REST API** tab
+   - Copy the **REST URL** and **REST Token** (make sure it's NOT the Read-Only token)
+   - In Vercel project settings → **Environment Variables**, add:
+     - `KV_REST_API_URL` = your REST URL
+     - `KV_REST_API_TOKEN` = your REST Token
+
+4. **Deploy**
+   - Click **Deploy** (or push a new commit to trigger auto-deployment)
+   - Vercel will automatically:
+     - Build your project
+     - Set `VERCEL_URL` environment variable (used for paste links)
+     - Deploy to a production URL
+
+5. **Verify**
+   - Visit your deployed URL
+   - Check `/api/healthz` endpoint - should return 200 if Redis is configured correctly
+   - Create a test paste to ensure everything works
+
+**Note**: The `vercel.json` configuration file is included to ensure proper routing. Vercel will automatically detect Express from `server.js` and use the Node.js runtime.
+
+### Deploy to Railway / Render
+
+Run `npm start`; set the same env vars (`KV_REST_API_URL`, `KV_REST_API_TOKEN`) and `APP_URL` to your public URL.

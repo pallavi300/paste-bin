@@ -1,10 +1,22 @@
 'use strict';
 
-require('dotenv').config({ path: '.env.local' });
-require('dotenv').config();
+const path = require('path');
+const fs = require('fs');
+const cwd = process.cwd();
+const envPath = path.join(cwd, '.env');
+const envLocalPath = path.join(cwd, '.env.local');
+
+if (fs.existsSync(envPath)) {
+  console.log('Loading .env from', envPath);
+} else {
+  console.warn('.env not found at', envPath);
+}
+require('dotenv').config({ path: envPath });
+if (fs.existsSync(envLocalPath)) {
+  require('dotenv').config({ path: envLocalPath });
+}
 
 const express = require('express');
-const path = require('path');
 
 const app = express();
 app.use(express.json());
@@ -38,7 +50,22 @@ function tryListen(p) {
 }
 
 if (require.main === module) {
-  tryListen(port);
+  (async () => {
+    const { ping, redisStatus } = require('./lib/kv');
+    const { urlSet, tokenSet } = redisStatus();
+    console.log('Redis URL:', urlSet ? 'set' : 'NOT SET');
+    console.log('Redis token:', tokenSet ? 'set' : 'NOT SET');
+    if (!urlSet || !tokenSet) {
+      console.error('  → Add UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN to .env (no quotes).');
+    }
+    try {
+      await ping();
+      console.log('Redis: OK');
+    } catch (e) {
+      console.error('Redis: FAIL –', e?.message || e);
+    }
+    tryListen(port);
+  })();
 }
 
 module.exports = app;

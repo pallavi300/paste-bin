@@ -6,6 +6,7 @@ async function get(req, res) {
   try {
     await ping();
   } catch (e) {
+    console.error('Healthz Redis ping failed:', e?.message || e);
     res.status(503).json({ ok: false });
     return;
   }

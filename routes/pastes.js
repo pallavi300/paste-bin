@@ -23,9 +23,13 @@ async function createHandler(req, res) {
     const result = await create(data, createdAt);
     id = result.id;
   } catch (e) {
-    console.error('Create paste error:', e?.message || e);
+    const msg = e?.message || String(e);
+    console.error('Create paste error:', msg);
     if (e?.cause) console.error('  cause:', e.cause);
-    if (e?.stack) console.error('  stack:', e.stack);
+    const lower = msg.toLowerCase();
+    if (lower.includes('read') || lower.includes('forbidden') || lower.includes('write')) {
+      console.error('  → Use the main REST token (not Read-Only). Upstash Console → Connect → REST → uncheck Read-Only Token.');
+    }
     res.status(500).json({ error: 'Failed to create paste' });
     return;
   }
